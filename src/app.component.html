@@ -1,0 +1,226 @@
+
+@if (!authService.isLoggedIn()) {
+    <app-auth-modal></app-auth-modal>
+} @else {
+    <header class="fixed top-0 w-full z-40 glass border-b border-slate-200/50 dark:border-slate-700/50 transition-colors duration-300">
+        <div class="px-4 py-3 max-w-7xl mx-auto relative flex justify-between items-center h-16">
+            
+            <!-- Left: Logo & User -->
+            <div class="flex flex-col z-10">
+                 <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-baseline gap-1">
+                    IBM Калькулятор <span class="text-rose-500">beta 0.05</span>
+                </h1>
+                <span class="text-[10px] text-slate-500 font-mono">User: {{ authService.currentUser()?.username }}</span>
+            </div>
+            
+            <!-- Center: Large Clock (Absolute centered on MD+) -->
+            <div class="hidden md:flex flex-col items-center absolute left-1/2 -translate-x-1/2 z-0 select-none group">
+                <div class="flex items-baseline gap-2">
+                    <div class="text-4xl font-mono font-bold text-slate-800 dark:text-slate-100 leading-none tracking-tight drop-shadow-sm">{{ formattedTime() }}</div>
+                    <div class="hidden group-hover:flex flex-col text-[10px] text-indigo-400 font-mono items-start absolute -right-32 top-1 bg-slate-800/80 px-2 py-1 rounded border border-slate-700 backdrop-blur-md animate-in fade-in slide-in-from-left-2">
+                        <span class="text-slate-500 uppercase text-[8px]">{{ machineService.languageService.t().header.shift_end }}</span>
+                        <span class="text-lg font-bold">{{ shiftRemaining() }}</span>
+                    </div>
+                </div>
+                <div class="text-xs text-rose-500 font-bold uppercase tracking-[0.2em] mt-1 opacity-90">{{ formattedDate() }}</div>
+            </div>
+           
+            <!-- Right: Buttons (Adaptive) -->
+            <div class="flex gap-2 items-center z-10">
+                
+                <!-- Desktop Menu (Hidden on Mobile) -->
+                <div class="hidden lg:flex gap-2">
+                    <!-- Base button style applied consistently via class -->
+                    @let btnClass = "p-2 rounded-lg transition-all shadow-sm active:scale-95 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-transparent hover:border-slate-300 dark:hover:border-slate-600";
+                    
+                    <!-- Bell / Reminder (Available to all) -->
+                    <button (click)="setGlobalReminder()" [class]="btnClass" [title]="machineService.languageService.t().settings.events.reminder">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </button>
+
+                    @if (authService.isModerator()) {
+                        <button (click)="isCloudModalOpen.set(true)" [class]="btnClass" [title]="machineService.languageService.t().header.cloud">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                            </svg>
+                        </button>
+                    }
+
+                    <button (click)="isReferenceModalOpen.set(true)" [class]="btnClass" [title]="machineService.languageService.t().header.ref_manual">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </button>
+
+                    <button (click)="sendReport()" [class]="btnClass" [title]="machineService.languageService.t().header.send_report">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                    
+                    @if (authService.isAdmin()) {
+                        <button (click)="isAdminModalOpen.set(true)" [class]="btnClass" [title]="machineService.languageService.t().header.admin">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </button>
+                    }
+
+                    <button (click)="isStatsModalOpen.set(true)" [class]="btnClass" [title]="machineService.languageService.t().header.stats">📊</button>
+                    <button (click)="isHistoryModalOpen.set(true)" [class]="btnClass" [title]="machineService.languageService.t().header.history">📜</button>
+                    <button (click)="isSettingsModalOpen.set(true)" [class]="btnClass" [title]="machineService.languageService.t().header.settings">⚙️</button>
+                    
+                    <button (click)="authService.logout()" [class]="btnClass" [title]="machineService.languageService.t().header.logout">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Theme Toggle (Visible Always) -->
+                <button (click)="toggleTheme()" class="p-2 rounded-lg transition-all shadow-sm active:scale-95 bg-slate-100 dark:bg-slate-800 text-amber-500 dark:text-indigo-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-transparent hover:border-slate-300 dark:hover:border-slate-600" title="Day/Night Mode">
+                    @if (themeService.isDark()) {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    }
+                </button>
+
+                <!-- Mobile Burger Menu Button -->
+                <button (click)="toggleMobileMenu()" class="lg:hidden p-2 rounded-lg transition-all shadow-sm active:scale-95 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700" title="Menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Dropdown Menu -->
+        @if (isMobileMenuOpen()) {
+            <div class="lg:hidden grid grid-cols-4 gap-2 px-4 pb-4 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 animate-in slide-in-from-top-2 shadow-lg">
+                <!-- Mobile Clock -->
+                <div class="col-span-4 flex justify-between items-center p-2 bg-slate-200 dark:bg-slate-700/50 rounded-lg mb-2 md:hidden">
+                     <span class="text-xl font-bold font-mono text-slate-800 dark:text-white">{{ formattedTime() }}</span>
+                     <span class="text-xs font-bold text-rose-500 uppercase">{{ formattedDate() }}</span>
+                </div>
+                
+                <div class="col-span-4 flex justify-center items-center gap-2 p-2 bg-slate-800/30 rounded border border-indigo-500/20 mb-2">
+                    <span class="text-[10px] uppercase text-indigo-400 font-bold">{{ machineService.languageService.t().header.shift_end }}:</span>
+                    <span class="font-mono font-bold text-white">{{ shiftRemaining() }}</span>
+                </div>
+
+                <button (click)="setGlobalReminder(); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.timer }}</span>
+                </button>
+
+                @if(authService.isModerator()) {
+                    <button (click)="isCloudModalOpen.set(true); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
+                        <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.cloud }}</span>
+                    </button>
+                }
+
+                <button (click)="isReferenceModalOpen.set(true); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.ref }}</span>
+                </button>
+                <button (click)="sendReport(); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-indigo-500 dark:text-indigo-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                    <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.report }}</span>
+                </button>
+                <button (click)="isStatsModalOpen.set(true); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400">
+                    <span class="text-xl mb-1">📊</span>
+                    <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.stats }}</span>
+                </button>
+                <button (click)="isHistoryModalOpen.set(true); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400">
+                    <span class="text-xl mb-1">📜</span>
+                    <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.hist }}</span>
+                </button>
+                <button (click)="isSettingsModalOpen.set(true); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400">
+                    <span class="text-xl mb-1">⚙️</span>
+                    <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.settings }}</span>
+                </button>
+                
+                @if (authService.isAdmin()) {
+                     <button (click)="isAdminModalOpen.set(true); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-rose-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.admin }}</span>
+                    </button>
+                }
+
+                <button (click)="authService.logout(); toggleMobileMenu()" class="flex flex-col items-center justify-center p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    <span class="text-[9px] uppercase font-bold">{{ machineService.languageService.t().nav.exit }}</span>
+                </button>
+            </div>
+        }
+        
+        <!-- Status Strip with Names and Indicators -->
+        <div class="px-4 py-1 flex gap-2 overflow-x-auto no-scrollbar border-t border-slate-200/50 dark:border-slate-700/50 items-center">
+            @for (id of machineIds(); track id) {
+                <button 
+                    [class]="'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all whitespace-nowrap ' + getStripIndicatorClass(getMachine(id).status)"
+                    (click)="scrollToMachine(id)">
+                    <!-- New Dot Element -->
+                    <div [class]="'w-2 h-2 rounded-full ' + getStripDotClass(getMachine(id).status)"></div>
+                    <span>{{ getMachine(id).name || (machineService.languageService.t().history.machine_prefix + ' #' + id) }}</span>
+                </button>
+            }
+            @if(authService.isAdmin() || authService.isModerator()) {
+                <button (click)="addMachine()" class="flex items-center justify-center min-w-[32px] w-8 h-8 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg shadow-lg transition-all ml-1" title="Add Machine">
+                    +
+                </button>
+            }
+        </div>
+    </header>
+
+    @if (!networkService.isOnline()) {
+        <div class="fixed top-24 w-full z-30 bg-amber-600 text-white text-xs font-bold text-center py-1 shadow-lg animate-in slide-in-from-top-2">
+            ⚠️ OFFLINE MODE: Data saving locally. Syncing on reconnect.
+        </div>
+    }
+
+    <main id="machine-container" class="px-4 space-y-4 pt-32 max-w-2xl mx-auto pb-8">
+        
+        <!-- Filter Toolbar -->
+        <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar mask-gradient">
+            <button (click)="setFilter('all')" [class]="getFilterBtnClass('all', 'slate')">{{ machineService.languageService.t().filters.all }}</button>
+            <button (click)="setFilter('work')" [class]="getFilterBtnClass('work', 'emerald')">{{ machineService.languageService.t().filters.work }}</button>
+            <button (click)="setFilter('idle')" [class]="getFilterBtnClass('idle', 'indigo')">{{ machineService.languageService.t().filters.idle }}</button>
+            <button (click)="setFilter('pause')" [class]="getFilterBtnClass('pause', 'amber')">{{ machineService.languageService.t().filters.pause }}</button>
+            <button (click)="setFilter('bar')" [class]="getFilterBtnClass('bar', 'orange')">{{ machineService.languageService.t().filters.bar }}</button>
+            <button (click)="setFilter('done')" [class]="getFilterBtnClass('done', 'rose')">{{ machineService.languageService.t().filters.done }}</button>
+        </div>
+
+        @for (id of machineIds(); track id) {
+            <app-machine-card 
+            [machine]="getMachine(id)"
+            (openChecklist)="openChecklist(getMachine(id))">
+            </app-machine-card>
+        } @empty {
+            <div class="text-center py-20 text-slate-400 dark:text-slate-600 font-mono text-sm border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-3xl">
+                NO MACHINES FOUND
+            </div>
+        }
+    </main>
+
+    <!-- Modals -->
+    @if (isStatsModalOpen()) { <app-stats-modal (closeModal)="isStatsModalOpen.set(false)"></app-stats-modal> }
+    @if (isHistoryModalOpen()) { <app-history-modal [history]="machineService.historyLog()" (closeModal)="isHistoryModalOpen.set(false)"></app-history-modal> }
+    @if (isSettingsModalOpen()) { <app-settings-modal (closeModal)="isSettingsModalOpen.set(false)"></app-settings-modal> }
+    @if (isChecklistModalOpen() && selectedMachineForQc()) { <app-checklist-modal [machine]="selectedMachineForQc()!" (closeModal)="isChecklistModalOpen.set(false)"></app-checklist-modal> }
+    @if (isReferenceModalOpen()) { <app-reference-modal (closeModal)="isReferenceModalOpen.set(false)"></app-reference-modal> }
+    @if (isCreatePartModalOpen()) { <app-create-part-modal [initialData]="editingPartData()" (closeModal)="isCreatePartModalOpen.set(false)"></app-create-part-modal> }
+    @if (isAdminModalOpen() && authService.isAdmin()) { <app-admin-modal (closeModal)="isAdminModalOpen.set(false)"></app-admin-modal> }
+    @if (isCloudModalOpen()) { <app-cloud-files-modal (closeModal)="isCloudModalOpen.set(false)" (editFile)="onEditCloudFile($event)" (createFile)="onCreateCloudFile()"></app-cloud-files-modal> }
+    @if (isReportModalOpen()) { <app-report-modal (closeModal)="isReportModalOpen.set(false)"></app-report-modal> }
+}

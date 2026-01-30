@@ -1,0 +1,330 @@
+
+<div [id]="'card-' + machine().id" [class]="cardClasses()">
+    <!-- Header: Name | Timer | QC Button -->
+    <div class="flex justify-between items-start mb-2">
+        <div class="flex flex-col gap-0.5">
+             <input 
+                type="text" 
+                [value]="machine().name || machineService.languageService.t().history.machine_prefix + ' ' + machine().id" 
+                (change)="updateName($event)"
+                class="bg-transparent text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 border-none p-0 focus:ring-0 w-40 focus:text-indigo-600 dark:focus:text-indigo-400 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                [placeholder]="machineService.languageService.t().machine_card.name_placeholder"
+            >
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <!-- Moved Notification Bell Here -->
+            <button 
+                (click)="toggleNotification()" 
+                class="transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/50" 
+                [title]="(machine().notificationEnabled !== false ? machineService.languageService.t().machine_card.notification_on : machineService.languageService.t().machine_card.notification_off)">
+                @if (machine().notificationEnabled !== false) {
+                    <svg xmlns="http://www.w3.org/2000/svg" [class]="machine().status === 'done' ? 'h-6 w-6 text-indigo-500 dark:text-indigo-400 drop-shadow-[0_0_10px_rgba(129,140,248,0.6)] animate-pulse' : 'h-5 w-5 text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                } @else {
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-opacity="0.5"/>
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.73 21a2 2 0 01-3.46 0" />
+                    </svg>
+                }
+            </button>
+
+            @if(machine().qcTimer <= 3600) {
+                 <div [class]="'text-sm font-mono border rounded px-2 py-1 transition-colors flex items-center justify-center ' + qcTimerClass()" style="min-width: 60px;">
+                    {{ qcTimerDisplay() }}
+                </div>
+            }
+            
+             @if(lastCheckTime()) {
+                 <div class="text-[10px] text-orange-500 dark:text-orange-400 font-mono border border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 rounded px-1.5 py-1.5 flex flex-col items-center leading-none" [title]="machineService.languageService.t().checklist.last_check_time">
+                    <span class="text-[8px] uppercase text-orange-500/70 mb-0.5">{{ machineService.languageService.t().machine_card.last_check }}</span>
+                    {{ lastCheckTime() }}
+                 </div>
+             }
+        </div>
+    </div>
+
+    <!-- Part Name and Map Number (MK) - Larger Inputs -->
+    <div class="mb-6 space-y-2">
+        <div class="relative">
+            <!-- Search Icon Indicator for Cloud Search -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-0 top-2 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+                type="text" 
+                [value]="machine().note" 
+                (change)="onPartSelect($event)" 
+                list="part-db"
+                [placeholder]="machineService.languageService.t().machine_card.part_placeholder" 
+                class="bg-transparent border-b border-slate-300 dark:border-slate-700/50 text-2xl font-bold text-slate-800 dark:text-white focus:ring-0 px-0 py-1 w-full placeholder:text-slate-400 dark:placeholder:text-slate-600 transition-colors focus:border-indigo-500 focus:text-indigo-600 dark:focus:text-indigo-300 pr-6"
+            >
+        </div>
+        <datalist id="part-db">
+            @for (name of partNames(); track name) {
+                <option [value]="name"></option>
+            }
+        </datalist>
+
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">{{ machineService.languageService.t().machine_card.mk_label }}:</span>
+            <input 
+                type="text" 
+                [value]="machine().mapNumber || ''" 
+                (change)="updateMapNumber($event)"
+                [placeholder]="machineService.languageService.t().machine_card.mk_placeholder" 
+                class="bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700/50 rounded px-2 py-1 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:border-indigo-500 w-32 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+            >
+        </div>
+    </div>
+
+    <!-- TIMERS & PROGRESS GRID -->
+    <div class="mb-8 pl-1 grid grid-cols-2 gap-4 items-center">
+        <!-- Left: Time Counters -->
+        <div class="flex flex-col gap-6">
+            <!-- Next Stop -->
+            <div>
+                <div class="text-6xl font-mono font-medium text-slate-800 dark:text-slate-200 tracking-tighter leading-none dark:shadow-black dark:drop-shadow-lg">
+                    {{ formattedTimeUntilStop() }}
+                </div>
+                <div class="text-xs text-rose-500 dark:text-rose-400 font-bold uppercase tracking-wider mt-1 ml-1 opacity-80">
+                    {{ machineService.languageService.t().machine_card.time_until_stop }}
+                </div>
+            </div>
+
+            <!-- Total Series Time -->
+            <div>
+                <div class="text-4xl font-mono font-medium text-slate-400 dark:text-slate-400 tracking-tighter leading-none">
+                    {{ formattedTimeLeft() }}
+                </div>
+                <div class="text-xs text-indigo-500 dark:text-indigo-400 font-bold uppercase tracking-wider mt-1 ml-1 opacity-80">
+                    {{ machineService.languageService.t().machine_card.total_series_time }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Progress Done/Total -->
+        <div class="flex flex-col items-end justify-center h-full pb-6 border-l border-slate-200 dark:border-slate-700/50 pl-2">
+             <div class="text-right">
+                 <div class="text-7xl font-mono font-bold text-slate-800 dark:text-white tracking-tighter leading-none drop-shadow-md">
+                    {{ partsDone() }}
+                 </div>
+                 <div class="text-2xl font-mono font-medium text-slate-400 dark:text-slate-500 -mt-1 mb-2 border-t border-slate-300 dark:border-slate-600 inline-block pt-1">
+                    / {{ machine().inputs.qty || '0' }}
+                 </div>
+             </div>
+             
+             <!-- Progress Bar -->
+             <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full mt-2 overflow-hidden shadow-inner">
+                 <div class="h-full bg-emerald-500 transition-all duration-500 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]" [style.width.%]="progressPercent()"></div>
+             </div>
+             <div class="text-xs text-emerald-500 dark:text-emerald-400 font-bold uppercase tracking-wider mt-2 self-end">
+                {{ machineService.languageService.t().machine_card.ready }} ({{ progressPercent() }}%)
+             </div>
+        </div>
+    </div>
+
+    <!-- Info / Controls Row -->
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-4">
+             <!-- Bar Info -->
+             @if(machine().barLeft > 0) {
+                 <div class="flex items-center gap-1.5">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-500 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                     </svg>
+                     <span class="text-sm font-mono font-bold text-orange-500 dark:text-orange-400" [title]="machineService.languageService.t().machine_card.bar_rem_time">{{ formattedBarTimeLeft() }}</span>
+                 </div>
+             }
+        </div>
+
+        <!-- Details Toggle -->
+        <div class="text-right cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700/30 p-1 rounded transition-colors select-none" (click)="toggleDetails()" [title]="machineService.languageService.t().common.details">
+            <div class="text-[10px] text-slate-500 uppercase flex items-center justify-end gap-1">
+                {{ endLabel() }} 
+                <svg xmlns="http://www.w3.org/2000/svg" [class.rotate-180]="isDetailsOpen()" class="h-3 w-3 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+            <div class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                {{ endTime() }} 
+                @if (partsRemaining() > 0 && machine().status === 'work') {
+                    <span class="ml-1 text-slate-500">({{ partsRemaining() }} шт)</span>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Причина паузы -->
+    @if (machine().status === 'pause') {
+        <div class="mb-4 animate-in fade-in slide-in-from-top-1">
+            <textarea 
+                [value]="machine().pauseNote || ''" 
+                (input)="updatePauseNote($event)"
+                [placeholder]="machineService.languageService.t().machine_card.pause_reason_placeholder"
+                class="w-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl p-3 text-sm text-slate-800 dark:text-white placeholder:text-amber-500/50 focus:outline-none focus:border-amber-500 resize-none h-20"
+            ></textarea>
+        </div>
+    }
+
+    @if (isDetailsOpen() || machine().status === 'idle' || machine().status === 'done' || machine().status === 'bar') {
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-700/50 animate-in fade-in slide-in-from-top-2 duration-300">
+            <!-- TABS -->
+            <div class="flex gap-1 mb-4 border-b border-slate-200 dark:border-slate-700/50">
+                <button 
+                    (click)="activeTab.set('general')"
+                    [class]="activeTab() === 'general' ? 'border-b-2 border-indigo-500 text-indigo-500 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
+                    class="px-4 py-2 text-sm font-bold uppercase tracking-wider transition-all">
+                    {{ machineService.languageService.t().machine_card.tab_general }}
+                </button>
+                <button 
+                    (click)="activeTab.set('material')"
+                    [class]="activeTab() === 'material' ? 'border-b-2 border-orange-500 text-orange-500 dark:text-orange-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
+                    class="px-4 py-2 text-sm font-bold uppercase tracking-wider transition-all">
+                    {{ machineService.languageService.t().machine_card.tab_material }}
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            @if(activeTab() === 'general') {
+                <div class="space-y-4 animate-in fade-in">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <label class="text-[9px] uppercase text-slate-500 block">{{ machineService.languageService.t().machine_card.plan }} (шт)</label>
+                            <input type="number" [ngModel]="machine().inputs.qty" (ngModelChange)="onInputChange('qty', $event)" class="bg-transparent w-full text-lg font-medium focus:outline-none dark:text-white">
+                        </div>
+                        <div class="bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700 col-span-2 flex gap-2">
+                            <div>
+                                <label class="text-[9px] uppercase text-slate-500 block">{{ machineService.languageService.t().machine_card.min }}</label>
+                                <input type="number" [ngModel]="machine().inputs.min" (ngModelChange)="onInputChange('min', $event)" class="bg-transparent w-full text-lg font-medium focus:outline-none dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[9px] uppercase text-slate-500 block">{{ machineService.languageService.t().machine_card.sec }}</label>
+                                <input type="number" [ngModel]="machine().inputs.sec" (ngModelChange)="onInputChange('sec', $event)" class="bg-transparent w-full text-lg font-medium focus:outline-none dark:text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-100 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-200 dark:border-slate-700/50">
+                        <div class="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                            <div class="flex justify-between">
+                                <span>{{ machineService.languageService.t().machine_card.time_per_part }}:</span>
+                                <span class="text-slate-900 dark:text-white font-bold">{{ cycleTimeDecimal() }} мин</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if(activeTab() === 'material') {
+                <div class="space-y-4 animate-in fade-in">
+                    <!-- Material Type & Diameter Selection -->
+                    <div class="flex gap-2">
+                        <div class="bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700 flex-1">
+                            <label class="text-[9px] uppercase text-slate-500 block mb-1">{{ machineService.languageService.t().machine_card.material_type }}</label>
+                            <select [value]="machine().materialType || 'Сталь'" (change)="updateMaterialType($event)" class="w-full bg-transparent text-slate-800 dark:text-white text-sm focus:outline-none font-bold">
+                                <option class="dark:bg-slate-800" value="Титан Grade 4">Титан Grade 4</option>
+                                <option class="dark:bg-slate-800" value="Титан Grade 4+">Титан Grade 4+</option>
+                                <option class="dark:bg-slate-800" value="Титан Grade 5">Титан Grade 5</option>
+                                <option class="dark:bg-slate-800" value="Титан">Титан (General)</option>
+                                <option class="dark:bg-slate-800" value="Сталь">Сталь</option>
+                                <option class="dark:bg-slate-800" value="Нерж. сталь">Нерж. сталь</option>
+                                <option class="dark:bg-slate-800" value="Латунь">Латунь</option>
+                                <option class="dark:bg-slate-800" value="Алюминий">Алюминий</option>
+                                <option class="dark:bg-slate-800" value="Пластик">Пластик</option>
+                                <option class="dark:bg-slate-800" value="Другое">Другое</option>
+                            </select>
+                        </div>
+                        <div class="bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700 flex-1">
+                            <label class="text-[9px] uppercase text-slate-500 block mb-1">{{ machineService.languageService.t().machine_card.diameter }}</label>
+                            <input 
+                                type="number" 
+                                list="diameters"
+                                [ngModel]="machine().material.diameter" 
+                                (ngModelChange)="onMaterialChange('diameter', $event)" 
+                                placeholder="--"
+                                class="w-full bg-transparent text-slate-800 dark:text-white text-sm focus:outline-none font-bold">
+                            <datalist id="diameters">
+                                @for(d of commonDiameters; track d) {
+                                    <option [value]="d"></option>
+                                }
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <!-- Material settings + Bar Time -->
+                    <div class="bg-slate-100 dark:bg-slate-800/30 p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 relative">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold uppercase">{{ machineService.languageService.t().machine_card.material_consumption }}</div>
+                            <div class="text-[9px] text-orange-500 dark:text-orange-400 font-mono" [title]="machineService.languageService.t().machine_card.bar_rem_time">
+                                {{ machineService.languageService.t().machine_card.bar_end }}: <b class="text-slate-800 dark:text-white text-xs">{{ barEndTime() }}</b>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-4 gap-2 mb-2">
+                            <div>
+                                <label class="text-[9px] text-slate-500 block uppercase">{{ machineService.languageService.t().machine_card.stock_len }}</label>
+                                <input type="number" [ngModel]="machine().material.stockLen" (ngModelChange)="onMaterialChange('stockLen', $event)" class="bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white w-full text-sm rounded px-1 focus:border-indigo-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[9px] text-slate-500 block uppercase">{{ machineService.languageService.t().machine_card.part_len }}</label>
+                                <input type="number" [ngModel]="machine().material.partLen" (ngModelChange)="onMaterialChange('partLen', $event)" class="bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white w-full text-sm rounded px-1 focus:border-indigo-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[9px] text-slate-500 block uppercase">{{ machineService.languageService.t().machine_card.cut_width }}</label>
+                                <input type="number" step="0.01" [ngModel]="machine().material.cutWidth" (ngModelChange)="onMaterialChange('cutWidth', $event)" class="bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white w-full text-sm rounded px-1 focus:border-indigo-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="text-[9px] text-slate-500 block uppercase">{{ machineService.languageService.t().machine_card.rem }}</label>
+                                <input type="number" [ngModel]="machine().material.barEndRem" (ngModelChange)="onMaterialChange('barEndRem', $event)" class="bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white w-full text-sm rounded px-1 focus:border-indigo-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="mb-2 bg-slate-200 dark:bg-slate-900/50 p-2 rounded flex items-center justify-between border border-slate-300 dark:border-slate-700/50 opacity-70">
+                            <label class="text-[9px] text-slate-500 block uppercase">{{ machineService.languageService.t().machine_card.bar_time_auto }}</label>
+                            <!-- Changed to readonly text display of formatted time -->
+                            <div class="bg-transparent w-24 text-right text-sm text-orange-600 dark:text-orange-300 font-bold font-mono">
+                                {{ formattedBarTotalTime() }}
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-300 dark:border-slate-700/50">
+                            <span>{{ machineService.languageService.t().machine_card.parts_per_bar }}: <b class="text-slate-900 dark:text-white">{{ machine().material.partsPerBar }}</b></span>
+                            <span>{{ machineService.languageService.t().machine_card.bars_needed }}: <b class="text-indigo-600 dark:text-indigo-400">{{ machine().material.barsNeeded }}</b></span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Quick Action Footer -->
+    <div class="flex gap-2 mt-4">
+        <!-- Main Start/Pause Button (Expands to fill) -->
+        <button [class]="mainButtonClasses()" [disabled]="isMainButtonDisabled()" (click)="toggleMachine()">{{ mainButtonText() }}</button>
+        
+        <!-- Quick Checklist Button -->
+        <button (click)="openChecklist.emit()" class="px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-white rounded-xl active:scale-95 border border-slate-300 dark:border-slate-600 transition-colors flex items-center justify-center shadow-sm" [title]="machineService.languageService.t().machine_card.measurements">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+        </button>
+
+        <div class="w-px bg-slate-300 dark:bg-slate-700/50 mx-1"></div>
+
+        <!-- Utility Buttons with consistent style -->
+        <button (click)="exportToJson()" class="px-4 py-3 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-300 dark:hover:bg-slate-700 rounded-xl active:scale-95 border border-slate-300 dark:border-slate-700 transition-colors shadow-sm" [title]="machineService.languageService.t().common.save + ' (JSON)'">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+        </button>
+
+        <button (click)="resetMachine()" class="px-4 py-3 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-300 dark:hover:bg-slate-700 rounded-xl active:scale-95 border border-slate-300 dark:border-slate-700 transition-colors shadow-sm" [title]="machineService.languageService.t().machine_card.reset_progress">✕</button>
+        <button (click)="deleteMachine($event)" class="px-4 py-3 bg-slate-200 dark:bg-slate-800 text-red-500 dark:text-red-400 hover:text-white hover:bg-red-500 dark:hover:bg-red-900/50 rounded-xl active:scale-95 border border-slate-300 dark:border-slate-700 flex items-center justify-center transition-colors shadow-sm" [title]="machineService.languageService.t().machine_card.delete_machine">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
+    </div>
+</div>

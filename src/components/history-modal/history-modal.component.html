@@ -1,0 +1,99 @@
+
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 fade-in" (click)="closeModal.emit()">
+    <div class="glass-panel w-full max-w-lg rounded-3xl p-6 relative h-[80vh] flex flex-col" (click)="$event.stopPropagation()">
+        <button (click)="closeModal.emit()" class="absolute top-4 right-4 text-slate-500 hover:text-white" [title]="machineService.languageService.t().common.close">✕</button>
+        
+        <div class="flex items-center justify-between mb-4 pr-8">
+            <h2 class="text-xl font-bold">{{ machineService.languageService.t().history.title }}</h2>
+            <div class="flex gap-2">
+                 <button (click)="downloadHistory()" class="p-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 rounded-xl transition active:scale-95 border border-slate-700" [title]="machineService.languageService.t().history.export_xlsx">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                 </button>
+                 <button (click)="clearHistory()" class="p-2 bg-slate-800 hover:bg-slate-700 text-red-400 hover:text-red-300 rounded-xl transition active:scale-95 border border-slate-700" [title]="machineService.languageService.t().history.clear">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                 </button>
+            </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="grid grid-cols-3 gap-2 mb-4">
+             <select [(ngModel)]="filterMachine" class="bg-slate-800 border border-slate-700 text-xs text-white rounded-xl px-2 py-2 focus:outline-none focus:border-indigo-500">
+                 <option value="all">{{ machineService.languageService.t().history.filter_machine }}</option>
+                 @for(m of uniqueMachines(); track m) {
+                     <option [value]="m">{{ machineService.languageService.t().history.machine_prefix }} #{{m}}</option>
+                 }
+             </select>
+             
+             <select [(ngModel)]="filterType" class="bg-slate-800 border border-slate-700 text-xs text-white rounded-xl px-2 py-2 focus:outline-none focus:border-indigo-500">
+                 <option value="all">{{ machineService.languageService.t().history.filter_type }}</option>
+                 <option value="start">{{ machineService.languageService.t().history.event.start }}</option>
+                 <option value="done">{{ machineService.languageService.t().history.event.done }}</option>
+                 <option value="pause">{{ machineService.languageService.t().history.event.pause }}</option>
+                 <option value="check">{{ machineService.languageService.t().history.event.check }}</option>
+                 <option value="bar">{{ machineService.languageService.t().history.event.bar }}</option>
+                 <option value="bar-reload">{{ machineService.languageService.t().history.event.bar_reload }}</option>
+             </select>
+
+             <button (click)="toggleSort()" class="bg-slate-800 border border-slate-700 text-xs text-slate-300 rounded-xl px-2 py-2 hover:bg-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all" [title]="machineService.languageService.t().common.sort">
+                 @if(sortOrder() === 'desc') {
+                     <span>{{ machineService.languageService.t().history.sort_new }}</span>
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                 } @else {
+                     <span>{{ machineService.languageService.t().history.sort_old }}</span>
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                 }
+             </button>
+        </div>
+
+        <div class="overflow-y-auto flex-1 space-y-2 pr-1 custom-scrollbar">
+            @for (item of filteredHistory(); track $index) {
+                <div class="relative bg-slate-800/50 rounded-xl border border-slate-700 mb-2 text-sm overflow-hidden group hover:border-slate-600 transition-colors animate-in fade-in duration-300">
+                    <!-- Color Strip -->
+                    <div [class]="'absolute top-0 bottom-0 left-0 w-1 ' + getTypeColor(item.type)"></div>
+                    
+                    <div class="pl-4 p-3 flex flex-col gap-1">
+                        <!-- Top Row: Type and Date -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500 font-bold text-[10px] uppercase tracking-wider">{{ getTypeLabel(item.type || 'info') }}</span>
+                            <span class="text-slate-500 text-[10px]">{{ item.date }} {{ item.time }}</span>
+                        </div>
+
+                        <!-- Middle Row: Machine and Remaining -->
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="text-indigo-400 font-bold text-xs uppercase">{{ machineService.languageService.t().history.machine_prefix }} #{{ item.machine }}</span>
+                                @if(item.mapNumber) {
+                                    <span class="text-[10px] text-slate-500 border border-slate-600/50 rounded px-1.5 bg-slate-800/50">{{ machineService.languageService.t().machine_card.mk_label }}: {{item.mapNumber}}</span>
+                                }
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                 @if(item.type === 'done' || item.type === 'work' || item.type === 'start') {
+                                     <span class="text-right font-bold whitespace-nowrap bg-slate-900/50 px-2 py-0.5 rounded text-[10px] text-slate-300 border border-slate-700/50">
+                                        {{ item.qty }} шт
+                                     </span>
+                                 }
+                                 @if(item.remaining !== undefined && item.remaining > 0) {
+                                     <div class="text-[10px] text-orange-400 font-mono" [title]="machineService.languageService.t().machine_card.rem">
+                                        {{ machineService.languageService.t().machine_card.rem }}: {{ item.remaining }}
+                                     </div>
+                                 }
+                            </div>
+                        </div>
+                        
+                        <!-- Bottom Row: Note -->
+                         <div class="text-slate-200 font-semibold text-sm mt-0.5 whitespace-pre-wrap leading-tight">
+                            {{ item.note }}
+                        </div>
+                    </div>
+                </div>
+            } @empty {
+                <p class="text-slate-500 text-center py-8">{{ machineService.languageService.t().history.empty }}</p>
+            }
+        </div>
+    </div>
+</div>

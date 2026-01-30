@@ -1,0 +1,178 @@
+
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 fade-in" (click)="closeModal.emit()">
+    <div class="glass-panel w-full max-w-5xl rounded-3xl p-6 relative h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
+        <button (click)="closeModal.emit()" class="absolute top-4 right-4 text-slate-500 hover:text-white" [title]="t().common.close">✕</button>
+        <h2 class="text-xl font-bold mb-4 text-white flex items-center gap-2">
+            <span class="text-2xl">📘</span> {{ t().reference.title }}
+        </h2>
+
+        <div class="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-1">
+            <button 
+                (click)="activeTab.set('g')"
+                [class]="activeTab() === 'g' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                class="px-4 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap active:scale-95 shadow-sm">
+                {{ t().reference.tab_g }}
+            </button>
+            <button 
+                (click)="activeTab.set('m')"
+                [class]="activeTab() === 'm' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                class="px-4 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap active:scale-95 shadow-sm">
+                {{ t().reference.tab_m }}
+            </button>
+            <button 
+                (click)="activeTab.set('tol')"
+                [class]="activeTab() === 'tol' ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                class="px-4 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap active:scale-95 shadow-sm">
+                {{ t().reference.tab_tol }}
+            </button>
+            
+            <div class="w-px bg-slate-700 mx-1"></div>
+
+            <button 
+                (click)="activeTab.set('star')"
+                [class]="activeTab() === 'star' ? 'bg-sky-600 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                class="px-4 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap active:scale-95 shadow-sm">
+                {{ t().reference.tab_star }}
+            </button>
+            <button 
+                (click)="activeTab.set('tsugami')"
+                [class]="activeTab() === 'tsugami' ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                class="px-4 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap active:scale-95 shadow-sm">
+                {{ t().reference.tab_tsugami }}
+            </button>
+            
+            <div class="w-px bg-slate-700 mx-1"></div>
+
+            <button 
+                (click)="activeTab.set('defects')"
+                [class]="activeTab() === 'defects' ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                class="px-4 py-2 rounded-xl font-bold transition-all text-sm whitespace-nowrap active:scale-95 shadow-sm">
+                {{ t().reference.tab_defects }}
+            </button>
+        </div>
+        
+        <div class="overflow-y-auto custom-scrollbar flex-1 pr-1 bg-slate-800/30 rounded-xl border border-slate-700/50">
+            @if (activeTab() === 'g') {
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-md z-10">
+                        <tr>
+                            <th class="px-4 py-3 w-16">{{ t().reference.col_code }}</th>
+                            <th class="px-4 py-3">{{ t().reference.col_desc }}</th>
+                            <th class="px-4 py-3 text-right">{{ t().reference.col_ex }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        @for (item of gCodes(); track item.code) {
+                            <tr class="hover:bg-slate-700/20 transition-colors">
+                                <td class="px-4 py-2 font-mono font-bold text-indigo-400 border-r border-slate-700/30">{{ item.code }}</td>
+                                <td class="px-4 py-2 text-slate-300 border-r border-slate-700/30">{{ item.desc }}</td>
+                                <td class="px-4 py-2 text-right text-slate-500 font-mono text-xs">{{ item.example }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            } @else if (activeTab() === 'm') {
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-md z-10">
+                        <tr>
+                            <th class="px-4 py-3 w-16">{{ t().reference.col_code }}</th>
+                            <th class="px-4 py-3">{{ t().reference.col_desc }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        @for (item of mCodes(); track item.code) {
+                            <tr class="hover:bg-slate-700/20 transition-colors">
+                                <td class="px-4 py-2 font-mono font-bold text-emerald-400 border-r border-slate-700/30">{{ item.code }}</td>
+                                <td class="px-4 py-2 text-slate-300">{{ item.desc }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            } @else if (activeTab() === 'star') {
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-md z-10">
+                        <tr>
+                            <th class="px-4 py-3 w-24">{{ t().reference.col_code }}</th>
+                            <th class="px-4 py-3">{{ t().reference.col_desc }} (Star)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        @for (item of starCodes; track item.code) {
+                            <tr class="hover:bg-slate-700/20 transition-colors">
+                                <td class="px-4 py-2 font-mono font-bold text-sky-400 border-r border-slate-700/30">{{ item.code }}</td>
+                                <td class="px-4 py-2 text-slate-300">{{ item.desc }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            } @else if (activeTab() === 'tsugami') {
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-md z-10">
+                        <tr>
+                            <th class="px-4 py-3 w-24">{{ t().reference.col_code }}</th>
+                            <th class="px-4 py-3">{{ t().reference.col_desc }} (Tsugami)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        @for (item of tsugamiCodes; track item.code) {
+                            <tr class="hover:bg-slate-700/20 transition-colors">
+                                <td class="px-4 py-2 font-mono font-bold text-teal-400 border-r border-slate-700/30">{{ item.code }}</td>
+                                <td class="px-4 py-2 text-slate-300">{{ item.desc }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            } @else if (activeTab() === 'defects') {
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-md z-10">
+                        <tr>
+                            <th class="px-4 py-3 w-1/4">{{ t().reference.col_prob }}</th>
+                            <th class="px-4 py-3 w-1/3">{{ t().reference.col_cause }}</th>
+                            <th class="px-4 py-3">{{ t().reference.col_sol }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        @for (item of defects; track item.id) {
+                            <tr class="hover:bg-slate-700/20 transition-colors">
+                                <td class="px-4 py-3 font-bold text-rose-300 border-r border-slate-700/30">{{ item.prob }}</td>
+                                <td class="px-4 py-3 text-slate-300 border-r border-slate-700/30">{{ item.cause }}</td>
+                                <td class="px-4 py-3 text-emerald-300">{{ item.sol }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            } @else {
+                 <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-400 sticky top-0 backdrop-blur-md z-10">
+                        <tr>
+                            <th class="px-4 py-3 text-slate-200">{{ t().reference.col_nom }}</th>
+                            <th class="px-2 py-3 text-right text-emerald-400" title="Shaft h6">h6</th>
+                            <th class="px-2 py-3 text-right text-emerald-500" title="Shaft h7">h7</th>
+                            <th class="px-2 py-3 text-right text-indigo-400" title="Hole H7">H7</th>
+                            <th class="px-2 py-3 text-right text-sky-400" title="Shaft g6">g6</th>
+                            <th class="px-2 py-3 text-right text-rose-400" title="Shaft k6">k6</th>
+                            <th class="px-2 py-3 text-right text-amber-400" title="Shaft f7">f7</th>
+                            <th class="px-2 py-3 text-right text-purple-400" title="Shaft m6">m6</th>
+                            <th class="px-2 py-3 text-right text-slate-400">{{ t().reference.col_common }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        @for (item of tolerances; track item.range) {
+                            <tr class="hover:bg-slate-700/20 transition-colors">
+                                <td class="px-4 py-3 font-bold text-slate-200 border-r border-slate-700/30">{{ item.range }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-emerald-400/80 border-r border-slate-700/30 text-xs">{{ item.h6 }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-emerald-500/80 border-r border-slate-700/30 text-xs">{{ item.h7 }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-indigo-400/80 border-r border-slate-700/30 text-xs">{{ item.H7 }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-sky-400/80 border-r border-slate-700/30 text-xs">{{ item.g6 }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-rose-400/80 border-r border-slate-700/30 text-xs">{{ item.k6 }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-amber-400/80 border-r border-slate-700/30 text-xs">{{ item.f7 }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-purple-400/80 border-r border-slate-700/30 text-xs">{{ item.m6 }}</td>
+                                <td class="px-2 py-3 text-right font-mono text-slate-400 text-xs">{{ item.js14 }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

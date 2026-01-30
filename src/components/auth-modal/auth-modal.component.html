@@ -1,0 +1,44 @@
+
+<div class="fixed inset-0 z-[60] bg-slate-950 flex items-center justify-center p-4 fade-in">
+    <div class="glass-panel w-full max-w-sm rounded-3xl p-8 relative flex flex-col items-center">
+        <h1 class="text-3xl font-bold mb-1 text-white text-center">IBM Калькулятор <span class="text-rose-500">beta 0.05</span></h1>
+        <h2 class="text-sm text-slate-400 mb-6 uppercase tracking-wider">
+            {{ isRegisterMode() ? t().auth.register_title : t().auth.login_title }}
+        </h2>
+        
+        <div class="w-full space-y-4">
+            <div>
+                <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">{{ t().auth.username }}</label>
+                <input type="text" [ngModel]="username()" (ngModelChange)="username.set($event)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+            </div>
+            
+            <div>
+                <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">{{ t().auth.password }}</label>
+                <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors" (keyup.enter)="submit()">
+            </div>
+            
+            @if(errorMsg()) {
+                <div class="text-red-400 text-sm text-center bg-red-500/10 border border-red-500/30 p-2 rounded-lg">{{ errorMsg() }}</div>
+            }
+
+            <button (click)="submit()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all mt-2">
+                {{ isRegisterMode() ? t().auth.btn_register : t().auth.btn_login }}
+            </button>
+            
+            <button (click)="toggleMode()" class="w-full text-xs text-slate-400 hover:text-white mt-4 underline">
+                {{ isRegisterMode() ? t().auth.to_login : t().auth.to_register }}
+            </button>
+
+            <!-- Language Switcher -->
+            <div class="flex justify-center gap-3 pt-6 w-full border-t border-slate-800 mt-2">
+                <button (click)="setLanguage('ru')" [class]="langService.currentLang() === 'ru' ? 'text-indigo-400 font-bold' : 'text-slate-600 hover:text-slate-400'" class="text-xs uppercase tracking-widest transition-colors">
+                    Русский
+                </button>
+                <span class="text-slate-700">|</span>
+                 <button (click)="setLanguage('uk')" [class]="langService.currentLang() === 'uk' ? 'text-indigo-400 font-bold' : 'text-slate-600 hover:text-slate-400'" class="text-xs uppercase tracking-widest transition-colors">
+                    Українська
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

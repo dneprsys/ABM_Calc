@@ -1,0 +1,127 @@
+
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 fade-in" (click)="closeModal.emit()">
+    <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 relative h-[85vh] flex flex-col" (click)="$event.stopPropagation()">
+        <button (click)="closeModal.emit()" class="absolute top-4 right-4 text-slate-500 hover:text-white" [title]="machineService.languageService.t().common.close">✕</button>
+        
+        <!-- Верхняя панель -->
+        <div class="flex flex-col gap-4 mb-4 pr-8">
+            <div class="flex items-center gap-4 flex-wrap">
+                 <h2 class="text-xl font-bold whitespace-nowrap">{{ machineService.languageService.t().checklist.title }}</h2>
+                 <div class="flex items-center gap-2">
+                     <label class="text-xs text-slate-400 uppercase font-bold">{{ machineService.languageService.t().checklist.mk_num }}</label>
+                     <input 
+                        type="text" 
+                        [(ngModel)]="mapNumber" 
+                        placeholder="--"
+                        class="bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-green-500 w-20 text-center"
+                     >
+                 </div>
+                 @if(lastCheckTimeDisplay()) {
+                     <div class="text-[10px] text-orange-400 font-mono border border-orange-500/30 bg-orange-500/10 rounded px-2 py-1 ml-auto flex items-center gap-2">
+                         <span>{{ machineService.languageService.t().checklist.last_check_time }}:</span>
+                         <span class="font-bold text-lg">{{ lastCheckTimeDisplay() }}</span>
+                     </div>
+                 }
+            </div>
+
+            <div class="flex gap-2 w-full">
+                <input 
+                    type="text" 
+                    [(ngModel)]="searchTerm" 
+                    [placeholder]="machineService.languageService.t().checklist.search_placeholder" 
+                    class="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 w-full placeholder:text-slate-500"
+                    (keyup.enter)="generateChecklist()"
+                >
+                <button 
+                    (click)="generateChecklist()" 
+                    [disabled]="isGenerating"
+                    class="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-4 rounded-xl transition-colors flex items-center justify-center min-w-[48px] shadow-md active:scale-95"
+                    [title]="!networkService.isOnline() ? 'Offline Mode' : machineService.languageService.t().checklist.find_btn">
+                    @if (isGenerating) {
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    }
+                </button>
+            </div>
+        </div>
+        
+        <div class="overflow-y-auto flex-1 mb-4 border border-slate-700/50 rounded-xl">
+            <table class="w-full text-sm text-left text-slate-400">
+                <thead class="text-xs text-slate-200 uppercase bg-slate-700/50 sticky top-0 z-10">
+                    <tr>
+                        <th class="px-3 py-3 w-10 text-center border-r border-slate-700/50">{{ machineService.languageService.t().checklist.table_no }}</th>
+                        <th class="px-3 py-3 border-r border-slate-700/50">{{ machineService.languageService.t().checklist.table_dim }}</th>
+                        <th class="px-3 py-3 w-32 border-r border-slate-700/50">{{ machineService.languageService.t().checklist.table_nominal }}</th>
+                        <th class="px-3 py-3 w-32">{{ machineService.languageService.t().checklist.table_fact }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    @for (item of checklistTemplate; track item.id; let i = $index) {
+                      @let min = item.nominal - item.tol_minus;
+                      @let max = item.nominal + item.tol_plus;
+                      <tr class="hover:bg-slate-800/30 transition-colors">
+                          <td class="px-3 py-3 text-center text-slate-500 font-mono text-xs border-r border-slate-700/50">{{ i + 1 }}</td>
+                          <td class="px-3 py-2 border-r border-slate-700/50">
+                              <input type="text" [(ngModel)]="item.name" class="bg-transparent text-white w-full border-none p-0 focus:ring-0 text-sm font-medium focus:text-indigo-400">
+                          </td>
+                          <td class="px-3 py-2 border-r border-slate-700/50">
+                              <input type="number" [(ngModel)]="item.nominal" class="bg-transparent text-white font-bold text-sm w-full border-b border-transparent focus:border-indigo-500 focus:outline-none mb-1">
+                              <div class="flex items-center text-[10px] gap-1">
+                                  <span class="text-green-400/80">+</span>
+                                  <input type="number" [(ngModel)]="item.tol_plus" class="bg-transparent text-green-400/80 w-8 border-b border-transparent focus:border-green-500 focus:outline-none">
+                                  <span class="text-slate-500">/</span>
+                                  <span class="text-red-400/80">-</span>
+                                  <input type="number" [(ngModel)]="item.tol_minus" class="bg-transparent text-red-400/80 w-8 border-b border-transparent focus:border-red-500 focus:outline-none">
+                              </div>
+                          </td>
+                          <td class="px-3 py-2">
+                              <input 
+                                type="number" 
+                                step="0.01" 
+                                [placeholder]="item.nominal.toString()" 
+                                [(ngModel)]="measurements[i]"
+                                (input)="validateQC($event.target, min, max)"
+                                class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white text-center focus:outline-none focus:border-indigo-500 transition-colors font-mono">
+                          </td>
+                      </tr>
+                    } @empty {
+                       <tr>
+                           <td colspan="4" class="text-center py-10 text-slate-600">
+                               {{ machineService.languageService.t().checklist.no_params }}
+                           </td>
+                       </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (isCommentVisible) {
+            <div class="mb-3 animate-in fade-in slide-in-from-bottom-2">
+                <textarea 
+                    [(ngModel)]="comment" 
+                    [placeholder]="machineService.languageService.t().checklist.comment_placeholder"
+                    class="w-full bg-slate-800 border border-slate-600 rounded-xl p-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 resize-none h-20"
+                ></textarea>
+            </div>
+        }
+
+        <div class="flex gap-2">
+            <button (click)="saveChecklist()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all">{{ machineService.languageService.t().checklist.save_db }}</button>
+             <button 
+                (click)="toggleComment()" 
+                [class]="isCommentVisible ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'"
+                class="w-14 rounded-xl border flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                [title]="machineService.languageService.t().checklist.toggle_comment">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
