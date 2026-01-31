@@ -1,5 +1,6 @@
 {
   "name": "CNC PRO: Master Dashboard",
   "description": "A dashboard application to monitor and manage CNC machine jobs, track material usage, perform quality checks, and view job history.",
+  "description": "Панель управления для мониторинга и управления заданиями на станках с ЧПУ, отслеживания расхода материалов, проведения проверок качества и просмотра истории заданий.",
   "requestFramePermissions": []
 }
