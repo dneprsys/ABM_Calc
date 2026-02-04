@@ -1,29 +1,48 @@
 {
-  "name": "cnc-pro:-master-dashboard",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "cnc-calc-pro",
+  "version": "1.0.0",
+  "description": "Система управління ЧПУ виробництвом для Star 206 та Tsugami 206",
+  "main": "index.js",
   "scripts": {
-    "dev": "ng serve",
-    "build": "ng build",
-    "preview": "ng serve --configuration=production"
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "start": "cd server && npm start",
+    "test": "npm run test:client && npm run test:server",
+    "test:client": "cd client && npm test",
+    "test:server": "cd server && npm test",
+    "lint": "npm run lint:client && npm run lint:server",
+    "lint:client": "cd client && npm run lint",
+    "lint:server": "cd server && npm run lint",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "migrate": "cd server && npm run migrate",
+    "seed": "cd server && npm run seed",
+    "telegram:start": "cd server && npm run telegram:start"
   },
-  "dependencies": {
-    "rxjs": "^7.8.2",
-    "@angular/common": "^21.1.0",
-    "@angular/forms": "^21.1.0",
-    "@angular/core": "^21.1.0",
-    "@angular/platform-browser": "^21.1.0",
-    "@angular/compiler": "^21.1.0",
-    "@google/genai": "^1.37.0",
-    "@angular/build": "^21.1.0",
-    "@angular/cli": "^21.1.0",
-    "@angular/compiler-cli": "^21.1.0",
-    "tailwindcss": "latest"
+  "keywords": [
+    "cnc",
+    "manufacturing",
+    "production",
+    "star-206",
+    "tsugami-206",
+    "fanuc",
+    "gcode",
+    "analytics"
+  ],
+  "author": "CNC Calc Pro Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-company/cnc-calc-pro.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "concurrently": "^8.2.2"
   }
 }
