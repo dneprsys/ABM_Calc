@@ -31,6 +31,14 @@
                 </div>
 
                 <div>
+                    <label class="text-xs text-slate-400 block mb-1">{{ machineService.languageService.t().settings.bot_token }}</label>
+                    <input type="password" [(ngModel)]="settings.telegramBotToken" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="123456:ABCDEF...">
+                    <p class="text-[11px] text-slate-500 mt-1">
+                        {{ machineService.languageService.t().settings.bot_token_hint }}
+                    </p>
+                </div>
+
+                <div>
                     <label class="text-xs text-slate-400 block mb-1">{{ machineService.languageService.t().settings.chat_id }}</label>
                     <div class="flex gap-2">
                         <input type="text" [(ngModel)]="settings.telegramChatId" class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="-100123456789">

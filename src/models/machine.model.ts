@@ -66,6 +66,7 @@ export interface HistoryItem {
 
 export interface AppSettings {
   language?: 'ru' | 'uk';
+  telegramBotToken?: string;
   telegramChatId: string;
   reportTime?: string; // HH:MM
   lastReportDate?: string; // YYYY-MM-DD to prevent duplicate sends

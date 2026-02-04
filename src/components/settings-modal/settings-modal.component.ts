@@ -17,6 +17,7 @@ export class SettingsModalComponent implements OnInit {
 
   settings: AppSettings = {
       language: 'ru',
+      telegramBotToken: '',
       telegramChatId: '',
       reportTime: '',
       notifications: { onDone: true, onPause: true, onCheck: false, onStart: true, onBar: true, onReminder: true },

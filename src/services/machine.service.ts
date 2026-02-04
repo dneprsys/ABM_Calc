@@ -16,7 +16,6 @@ export class MachineService {
   private readonly HISTORY_KEY = 'cnc_history_v3';
   private readonly SETTINGS_KEY = 'cnc_settings_v1';
   private readonly OFFLINE_QUEUE_KEY = 'cnc_offline_queue_v1';
-  private readonly TG_TOKEN = process.env['TELEGRAM_BOT_TOKEN'] || '8151968533:AAElu22QpnDP-3NbaLBwsPvmUz05UEXhTEY';
   
   languageService = inject(LanguageService);
   dbService = inject(DbService);
@@ -28,6 +27,7 @@ export class MachineService {
   
   settings = signal<AppSettings>({
       language: 'ru',
+      telegramBotToken: '',
       telegramChatId: '',
       reportTime: '',
       notifications: { onDone: true, onPause: true, onCheck: false, onStart: true, onBar: true, onReminder: true },
@@ -175,6 +175,9 @@ export class MachineService {
     }
     if (storedSettings) {
         const parsedSettings = JSON.parse(storedSettings);
+        if (parsedSettings.telegramBotToken === undefined) {
+            parsedSettings.telegramBotToken = '';
+        }
         if(!parsedSettings.telegramEvents) {
             parsedSettings.telegramEvents = { onStart: true, onPause: true, onDone: true, onBar: true, onCheck: true, onReminder: true };
         }
@@ -840,8 +843,8 @@ export class MachineService {
   }
 
   private async sendTelegramMessage(text: string, isRetry = false): Promise<boolean> {
-      const { telegramChatId } = this.settings();
-      const token = this.TG_TOKEN;
+      const { telegramChatId, telegramBotToken } = this.settings();
+      const token = telegramBotToken?.trim();
       if (!token || !telegramChatId) {
           return false;
       }
@@ -894,7 +897,7 @@ export class MachineService {
       }
 
       const { telegramChatId } = this.settings();
-      const token = this.TG_TOKEN;
+      const token = this.settings().telegramBotToken?.trim();
       if (!token || !telegramChatId) return false;
 
       const t = this.languageService.t();

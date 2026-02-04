@@ -35,6 +35,7 @@ export const TRANSLATIONS = {
     settings: {
         title: "Настройки", language: "Язык (Language)", telegram_settings: "НАСТРОЙКИ TELEGRAM", launch_bot: "Запустить бота",
         telegram_instruction: "Как подключить: 1. Нажмите ссылку бота. 2. Нажмите 'Запустить' (Start). 3. Скопируйте полученный Chat ID и вставьте в поле ниже.",
+        bot_token: "Bot Token", bot_token_hint: "Токен хранится локально в браузере. Не публикуйте его.",
         chat_id: "Chat ID", test_btn: "Тест", telegram_msgs: "Настройки сообщений в телеграме:",
         notifications_desktop: "Уведомления (Desktop)", machine_mgmt: "Управление станками", add_machine: "+ Добавить станок на дашборд",
         delete: "Удалить", delete_machine_confirm: "Удалить Станок #{{id}}? История и настройки этого станка будут потеряны.", save_btn: "Сохранить",
@@ -159,6 +160,7 @@ export const TRANSLATIONS = {
     settings: {
         title: "Налаштування", language: "Мова (Language)", telegram_settings: "НАЛАШТУВАННЯ TELEGRAM", launch_bot: "Запустити бота",
         telegram_instruction: "Як підключити: 1. Натисніть посилання бота. 2. Натисніть 'Розпочати' (Start). 3. Скопіюйте отриманий Chat ID і вставте в поле нижче.",
+        bot_token: "Bot Token", bot_token_hint: "Токен зберігається локально у браузері. Не публікуйте його.",
         chat_id: "Chat ID", test_btn: "Тест", telegram_msgs: "Налаштування повідомлень у Telegram:",
         notifications_desktop: "Сповіщення (Desktop)", machine_mgmt: "Керування верстатами", add_machine: "+ Додати верстат на дашборд",
         delete: "Удалить", delete_machine_confirm: "Видалити Верстат #{{id}}? Історія та налаштування цього верстата будуть втрачені.", save_btn: "Зберегти",
